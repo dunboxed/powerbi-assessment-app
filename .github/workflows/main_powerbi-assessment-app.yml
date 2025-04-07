@@ -35,17 +35,29 @@ jobs:
       - name: List installed packages
         run: pip list
 
-      - name: Create wsgi.py
+      - name: Create templates directory if it doesn't exist
         run: |
-          echo "from app import app as application" > wsgi.py
-          cat wsgi.py
+          mkdir -p templates
+          ls -la templates
 
       - name: Prepare deployment package
         run: |
+          # Create the deployment directory
           mkdir -p deployment
-          cp -r app.py requirements.txt templates wsgi.py deployment/
+          
+          # Copy application files
+          cp -r app.py requirements.txt wsgi.py deployment/
+          
+          # Create templates directory in deployment and copy templates
+          mkdir -p deployment/templates
+          cp -r templates/* deployment/templates/
+          
+          # Check the deployment structure
+          ls -la deployment
+          ls -la deployment/templates
+          
+          # Create the zip file
           cd deployment
-          ls -la
           zip -r ../release.zip .
 
       - name: Upload artifact for deployment
@@ -69,19 +81,10 @@ jobs:
 
       - name: Unzip deployment package
         run: |
-          unzip release.zip
-          ls -la
-
-      - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install -r requirements.txt
-          pip install flask msal requests gunicorn
-
-      - name: Verify dependencies
-        run: |
-          pip list
-          python -c "import flask; print(flask.__version__)"
+          mkdir -p extracted
+          unzip release.zip -d extracted
+          ls -la extracted
+          ls -la extracted/templates || echo "Templates directory not found"
 
       - name: Login to Azure
         uses: azure/login@v2
@@ -96,4 +99,5 @@ jobs:
         with:
           app-name: 'powerbi-assessment-app'
           slot-name: 'Production'
-          startup-command: 'gunicorn --bind 0.0.0.0:8000 wsgi:application'
+          package: './extracted'
+          startup-command: 'gunicorn --bind=0.0.0.0:8000 --timeout=120 --access-logfile=- --error-logfile=- wsgi:application'
