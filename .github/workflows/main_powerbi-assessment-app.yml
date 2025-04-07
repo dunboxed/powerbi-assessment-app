@@ -40,7 +40,7 @@ jobs:
       - name: Prepare deployment package
         run: |
           mkdir -p deployment
-          cp -r app.py requirements.txt templates wsgi.py app.py deployment/
+          cp -r app.py requirements.txt templates wsgi.py deployment/
           cd deployment
           zip -r ../release.zip .
 
