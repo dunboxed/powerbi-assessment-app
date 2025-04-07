@@ -3,13 +3,12 @@ import msal
 import requests
 import json
 import os
-from werkzeug.urls import url_quote_plus  # Explicitly import this
-
-
+import urllib.parse  # Use urllib instead of werkzeug.urls
 
 app = Flask(__name__)
 app.secret_key = os.environ.get('FLASK_SECRET_KEY', os.urandom(24))
 
+# Ensure templates are in the correct directory
 template_dir = os.path.abspath(os.path.dirname(__file__))
 app.template_folder = template_dir
 
@@ -133,7 +132,7 @@ def report_details(report_id):
 def logout():
     session.clear()
     return redirect(url_for('index'))
-    
+
 @app.errorhandler(500)
 def handle_500(error):
     return "An unexpected error occurred", 500
