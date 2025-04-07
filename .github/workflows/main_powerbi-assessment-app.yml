@@ -31,11 +31,16 @@ jobs:
           pip install -r requirements.txt
           pip install gunicorn
 
-      - name: List files
-        run: ls -la
+      - name: Debug - List files
+        run: |
+          pwd
+          ls -la
+          echo "Current directory contents:"
+          find . -type f
 
       - name: Zip artifact for deployment
-        run: zip -r release.zip . -x 'venv/*'
+        run: |
+          zip -r release.zip . -x 'venv/*' '.git/*' '.github/*'
 
       - name: Upload artifact for deployment jobs
         uses: actions/upload-artifact@v4
@@ -57,7 +62,15 @@ jobs:
           name: python-app
 
       - name: Unzip artifact for deployment
-        run: unzip release.zip
+        run: |
+          unzip release.zip
+          ls -la
+
+      - name: Create wsgi.py
+        run: |
+          echo "from app import app as application" > wsgi.py
+          echo "if __name__ == '__main__':" >> wsgi.py
+          echo "    application.run()" >> wsgi.py
 
       - name: Login to Azure
         uses: azure/login@v2
@@ -72,4 +85,4 @@ jobs:
         with:
           app-name: 'powerbi-assessment-app'
           slot-name: 'Production'
-          startup-command: 'gunicorn --bind 0.0.0.0:8000 app:app'
+          startup-command: 'gunicorn --bind 0.0.0.0:8000 wsgi:application'
