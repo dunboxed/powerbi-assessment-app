@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Report Details - PowerBI Assessment Tool</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #0078D4;
+        }
+        .details {
+            margin-top: 20px;
+        }
+        .detail-item {
+            margin-bottom: 10px;
+        }
+        .detail-label {
+            font-weight: bold;
+        }
+        .assessment {
+            margin-top: 30px;
+            padding: 20px;
+            background-color: #f0f7ff;
+            border-radius: 5px;
+        }
+        .score-card {
+            display: inline-block;
+            padding: 15px;
+            margin: 10px;
+            background-color: white;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+        .score-value {
+            font-size: 24px;
+            font-weight: bold;
+            margin: 5px 0;
+        }
+        .alert {
+            padding: 10px;
+            margin-bottom: 15px;
+            border-radius: 4px;
+        }
+        .alert-error {
+            background-color: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+        }
+        .actions {
+            margin-top: 20px;
+        }
+        .btn {
+            display: inline-block;
+            background-color: #0078D4;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            text-decoration: none;
+        }
+        .btn-secondary {
+            background-color: #6c757d;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Report Details</h1>
+        
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category }}">{{ message }}</div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+        
+        <div class="details">
+            <div class="detail-item">
+                <span class="detail-label">Report Name:</span> {{ report.name }}
+            </div>
+            <div class="detail-item">
+                <span class="detail-label">Report ID:</span> {{ report.id }}
+            </div>
+            <div class="detail-item">
+                <span class="detail-label">Last Modified:</span> {{ report.modifiedDateTime }}
+            </div>
+        </div>
+        
+        <div class="assessment">
+            <h2>Design Assessment</h2>
+            <p>This is a simplified version of the assessment tool. In a complete implementation, this would show detailed design analysis of the report.</p>
+            
+            <div class="score-card">
+                <h3>Total Score</h3>
+                <div class="score-value">75</div>
+                <div>out of 100</div>
+            </div>
+            
+            <div class="score-card">
+                <h3>Visual Clarity</h3>
+                <div class="score-value">18</div>
+                <div>out of 25</div>
+            </div>
+            
+            <div class="score-card">
+                <h3>Color Usage</h3>
+                <div class="score-value">15</div>
+                <div>out of 20</div>
+            </div>
+            
+            <h3>Recommendations</h3>
+            <ul>
+                <li>Consider improving color contrast for better accessibility</li>
+                <li>Reduce visual clutter by removing unnecessary gridlines</li>
+                <li>Ensure consistent alignment of visual elements</li>
+            </ul>
+        </div>
+        
+        <div class="actions">
+            <a href="{{ url_for('select_report', workspace_id=session.workspace_id) }}" class="btn">Back to Reports</a>
+            <a href="{{ url_for('logout') }}" class="btn btn-secondary">Logout</a>
+        </div>
+    </div>
+</body>
+</html>
