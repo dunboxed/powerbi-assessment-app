@@ -47,9 +47,9 @@ jobs:
 
       - name: Prepare deployment package
         run: |
-          mkdir -p deployment
-          cp -r * deployment/
-          cd deployment
+          mkdir -p ../deployment
+          cp -r * ../deployment/
+          cd ../deployment
           rm -rf .git .github venv
           zip -r ../release.zip .
 
@@ -57,7 +57,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: python-app
-          path: release.zip
+          path: ../release.zip
 
   deploy:
     runs-on: ubuntu-latest
