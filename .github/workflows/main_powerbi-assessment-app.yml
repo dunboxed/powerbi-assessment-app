@@ -31,18 +31,29 @@ jobs:
           pip install -r requirements.txt
           pip install gunicorn
 
-      - name: Debug - List files
+      - name: Detailed file listing
         run: |
           pwd
+          echo "Root directory:"
           ls -la
-          echo "Current directory contents:"
-          find . -type f
+          echo "\nDeep file structure:"
+          find . -type f | sort
 
-      - name: Zip artifact for deployment
+      - name: Create wsgi.py
         run: |
-          zip -r release.zip . -x 'venv/*' '.git/*' '.github/*'
+          echo "from app import app as application" > wsgi.py
+          echo "if __name__ == '__main__':" >> wsgi.py
+          echo "    application.run()" >> wsgi.py
 
-      - name: Upload artifact for deployment jobs
+      - name: Prepare deployment package
+        run: |
+          mkdir -p deployment
+          cp -r * deployment/
+          cd deployment
+          rm -rf .git .github venv
+          zip -r ../release.zip .
+
+      - name: Upload artifact for deployment
         uses: actions/upload-artifact@v4
         with:
           name: python-app
@@ -56,21 +67,15 @@ jobs:
       url: ${{ steps.deploy-to-webapp.outputs.webapp-url }}
 
     steps:
-      - name: Download artifact from build job
+      - name: Download artifact
         uses: actions/download-artifact@v4
         with:
           name: python-app
 
-      - name: Unzip artifact for deployment
+      - name: Unzip deployment package
         run: |
           unzip release.zip
           ls -la
-
-      - name: Create wsgi.py
-        run: |
-          echo "from app import app as application" > wsgi.py
-          echo "if __name__ == '__main__':" >> wsgi.py
-          echo "    application.run()" >> wsgi.py
 
       - name: Login to Azure
         uses: azure/login@v2
