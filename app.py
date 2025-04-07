@@ -3,9 +3,16 @@ import msal
 import requests
 import json
 import os
+from dotenv import load_dotenv
+
+# Load environment variables
+load_dotenv()
 
 app = Flask(__name__)
-app.secret_key = os.environ.get('FLASK_SECRET_KEY', 'development-key')
+app.secret_key = os.environ.get('FLASK_SECRET_KEY', os.urandom(24))
+
+template_dir = os.path.abspath(os.path.dirname(__file__))
+app.template_folder = template_dir
 
 @app.route('/')
 def index():
@@ -127,7 +134,11 @@ def report_details(report_id):
 def logout():
     session.clear()
     return redirect(url_for('index'))
+    
+@app.errorhandler(500)
+def handle_500(error):
+    return "An unexpected error occurred", 500
 
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
-    app.run(host='0.0.0.0', port=port)
+    app.run(host='0.0.0.0', port=port, debug=os.environ.get('FLASK_DEBUG', 'False') == 'True')
