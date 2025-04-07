@@ -3,10 +3,9 @@ import msal
 import requests
 import json
 import os
-from dotenv import load_dotenv
+from werkzeug.urls import url_quote_plus  # Explicitly import this
 
-# Load environment variables
-load_dotenv()
+
 
 app = Flask(__name__)
 app.secret_key = os.environ.get('FLASK_SECRET_KEY', os.urandom(24))
