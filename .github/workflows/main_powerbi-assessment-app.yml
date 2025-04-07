@@ -25,11 +25,15 @@ jobs:
         run: |
           python -m venv venv
           source venv/bin/activate
-      
+
       - name: Install dependencies
         run: |
+          python -m pip install --upgrade pip
           pip install -r requirements.txt
-          pip install gunicorn
+          pip install flask msal requests gunicorn
+
+      - name: List installed packages
+        run: pip list
 
       - name: Create wsgi.py
         run: |
@@ -68,10 +72,16 @@ jobs:
           unzip release.zip
           ls -la
 
-      - name: Verify wsgi.py
+      - name: Install dependencies
         run: |
-          cat wsgi.py
-          python3 -c "from wsgi import application; print('WSGI import successful')"
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install flask msal requests gunicorn
+
+      - name: Verify dependencies
+        run: |
+          pip list
+          python -c "import flask; print(flask.__version__)"
 
       - name: Login to Azure
         uses: azure/login@v2
