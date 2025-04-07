@@ -34,14 +34,14 @@ jobs:
       - name: Create wsgi.py
         run: |
           echo "from app import app as application" > wsgi.py
-          echo "if __name__ == '__main__':" >> wsgi.py
-          echo "    application.run()" >> wsgi.py
+          cat wsgi.py
 
       - name: Prepare deployment package
         run: |
           mkdir -p deployment
           cp -r app.py requirements.txt templates wsgi.py deployment/
           cd deployment
+          ls -la
           zip -r ../release.zip .
 
       - name: Upload artifact for deployment
@@ -67,6 +67,11 @@ jobs:
         run: |
           unzip release.zip
           ls -la
+
+      - name: Verify wsgi.py
+        run: |
+          cat wsgi.py
+          python3 -c "from wsgi import application; print('WSGI import successful')"
 
       - name: Login to Azure
         uses: azure/login@v2
