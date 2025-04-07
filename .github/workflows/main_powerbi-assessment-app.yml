@@ -31,14 +31,6 @@ jobs:
           pip install -r requirements.txt
           pip install gunicorn
 
-      - name: Detailed file listing
-        run: |
-          pwd
-          echo "Root directory:"
-          ls -la
-          echo "\nDeep file structure:"
-          find . -type f | sort
-
       - name: Create wsgi.py
         run: |
           echo "from app import app as application" > wsgi.py
@@ -47,17 +39,17 @@ jobs:
 
       - name: Prepare deployment package
         run: |
-          mkdir -p ../deployment
-          cp -r * ../deployment/
-          cd ../deployment
+          mkdir -p ${{ github.workspace }}/deployment
+          cp -r ${{ github.workspace }}/* ${{ github.workspace }}/deployment/
+          cd ${{ github.workspace }}/deployment
           rm -rf .git .github venv
-          zip -r ../release.zip .
+          zip -r ${{ github.workspace }}/release.zip .
 
       - name: Upload artifact for deployment
         uses: actions/upload-artifact@v4
         with:
           name: python-app
-          path: ../release.zip
+          path: ${{ github.workspace }}/release.zip
 
   deploy:
     runs-on: ubuntu-latest
