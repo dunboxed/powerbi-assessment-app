@@ -39,17 +39,16 @@ jobs:
 
       - name: Prepare deployment package
         run: |
-          mkdir -p ${{ github.workspace }}/deployment
-          cp -r ${{ github.workspace }}/!(deployment|venv) ${{ github.workspace }}/deployment/
-          cd ${{ github.workspace }}/deployment
-          rm -rf .git .github
-          zip -r ${{ github.workspace }}/release.zip .
+          mkdir -p deployment
+          cp -r app.py requirements.txt templates wsgi.py app.py deployment/
+          cd deployment
+          zip -r ../release.zip .
 
       - name: Upload artifact for deployment
         uses: actions/upload-artifact@v4
         with:
           name: python-app
-          path: ${{ github.workspace }}/release.zip
+          path: release.zip
 
   deploy:
     runs-on: ubuntu-latest
