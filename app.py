@@ -31,11 +31,67 @@ logger.info(f"Using template directory: {app.template_folder}")
 @app.route('/')
 def index():
     logger.info("Index route accessed")
-    try:
-        return render_template('index.html')
-    except Exception as e:
-        logger.error(f"Error rendering index: {str(e)}")
-        return f"Error loading application: {str(e)}", 500
+    # Check if credentials are stored in environment variables
+    tenant_id = os.environ.get('TENANT_ID')
+    client_id = os.environ.get('CLIENT_ID')
+    client_secret = os.environ.get('CLIENT_SECRET')
+    
+    # If all credentials exist, attempt auto-connect
+    if tenant_id and client_id and client_secret:
+        try:
+            logger.info("Environment variables found, attempting auto-connect")
+            # Store in session
+            session['tenant_id'] = tenant_id
+            session['client_id'] = client_id
+            session['client_secret'] = client_secret
+            
+            # Initialize MSAL app
+            app_instance = msal.ConfidentialClientApplication(
+                client_id=client_id,
+                client_credential=client_secret,
+                authority=f"https://login.microsoftonline.com/{tenant_id}"
+            )
+            
+            # Get token
+            result = app_instance.acquire_token_for_client(scopes=["https://analysis.windows.net/powerbi/api/.default"])
+            
+            if "access_token" not in result:
+                logger.error(f"Auto-authentication failed: {result.get('error_description')}")
+                flash(f"Auto-authentication failed: {result.get('error_description')}", 'error')
+                return render_template('index.html', environ=os.environ)
+            
+            # Store token in session
+            session['access_token'] = result["access_token"]
+            
+            # Get workspaces
+            headers = {
+                "Authorization": f"Bearer {result['access_token']}",
+                "Content-Type": "application/json"
+            }
+            
+            response = requests.get(
+                "https://api.powerbi.com/v1.0/myorg/groups",
+                headers=headers
+            )
+            
+            if response.status_code != 200:
+                error_details = response.json() if response.content else "No response content"
+                logger.error(f"Failed to get workspaces: Status code {response.status_code}, Details: {error_details}")
+                flash(f"Failed to get workspaces: {response.text}", 'error')
+                return render_template('index.html', environ=os.environ)
+            
+            # Store workspaces in session
+            workspaces = response.json()["value"]
+            session['workspaces'] = workspaces
+            
+            return redirect(url_for('select_workspace'))
+        except Exception as e:
+            logger.error(f"Auto-connect error: {str(e)}")
+            flash(f"Auto-connect failed: {str(e)}", 'error')
+            return render_template('index.html', environ=os.environ)
+    
+    # If no environment variables, show the normal form
+    return render_template('index.html', environ=os.environ)
 
 @app.route('/connect', methods=['POST'])
 def connect():
@@ -82,9 +138,9 @@ def connect():
         )
         
         if response.status_code != 200:
-            error_msg = f"Failed to get workspaces: {response.text}"
-            logger.error(error_msg)
-            flash(error_msg, 'error')
+            error_details = response.json() if response.content else "No response content"
+            logger.error(f"Failed to get workspaces: Status code {response.status_code}, Details: {error_details}")
+            flash(f"Failed to get workspaces: {response.text}", 'error')
             return redirect(url_for('index'))
         
         # Store workspaces in session
@@ -123,9 +179,9 @@ def select_report(workspace_id):
         )
         
         if response.status_code != 200:
-            error_msg = f"Failed to get reports: {response.text}"
-            logger.error(error_msg)
-            flash(error_msg, 'error')
+            error_details = response.json() if response.content else "No response content"
+            logger.error(f"Failed to get reports: Status code {response.status_code}, Details: {error_details}")
+            flash(f"Failed to get reports: {response.text}", 'error')
             return redirect(url_for('select_workspace'))
         
         # Store workspace_id and reports in session
