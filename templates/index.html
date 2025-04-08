@@ -1,11 +1,10 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>PowerBI Assessment Tool</title>
+    <title>Power BI Assessment Tool</title>
     <style>
         body {
             font-family: Arial, sans-serif;
-            line-height: 1.6;
             margin: 0;
             padding: 20px;
             background-color: #f5f5f5;
@@ -13,10 +12,10 @@
         .container {
             max-width: 800px;
             margin: 0 auto;
-            background: white;
+            background-color: white;
             padding: 20px;
             border-radius: 5px;
-            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
         h1 {
             color: #0078D4;
@@ -27,8 +26,9 @@
         label {
             display: block;
             margin-bottom: 5px;
+            font-weight: bold;
         }
-        input[type="text"],
+        input[type="text"], 
         input[type="password"] {
             width: 100%;
             padding: 8px;
@@ -43,45 +43,66 @@
             border-radius: 4px;
             cursor: pointer;
         }
-        .alert {
+        .flash-message {
             padding: 10px;
             margin-bottom: 15px;
             border-radius: 4px;
         }
-        .alert-error {
-            background-color: #f8d7da;
-            border: 1px solid #f5c6cb;
-            color: #721c24;
+        .flash-message.error {
+            background-color: #FFEBEE;
+            color: #B71C1C;
+            border: 1px solid #FFCDD2;
+        }
+        .note {
+            background-color: #E8F5E9;
+            padding: 10px;
+            border-radius: 4px;
+            margin-bottom: 15px;
+        }
+        .env-vars {
+            background-color: #E3F2FD;
+            padding: 10px;
+            border-radius: 4px;
+            margin-bottom: 15px;
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>PowerBI Assessment Tool</h1>
+        <h1>Power BI Assessment Tool</h1>
         
         {% with messages = get_flashed_messages(with_categories=true) %}
             {% if messages %}
                 {% for category, message in messages %}
-                    <div class="alert alert-{{ category }}">{{ message }}</div>
+                    <div class="flash-message {{ category }}">
+                        {{ message }}
+                    </div>
                 {% endfor %}
             {% endif %}
         {% endwith %}
         
-        <h2>Connect to PowerBI</h2>
+        {% if environ.get('CLIENT_ID') and environ.get('CLIENT_SECRET') and environ.get('TENANT_ID') %}
+            <div class="note">
+                <p>Environment variables for Power BI credentials are configured. The application will attempt to connect automatically.</p>
+            </div>
+        {% endif %}
+        
+        <p>Connect to your Power BI service to assess your reports.</p>
+        
         <form action="{{ url_for('connect') }}" method="post">
             <div class="form-group">
                 <label for="tenant_id">Tenant ID</label>
-                <input type="text" id="tenant_id" name="tenant_id" required>
+                <input type="text" id="tenant_id" name="tenant_id" value="{{ environ.get('TENANT_ID', '') }}" required>
             </div>
             
             <div class="form-group">
                 <label for="client_id">Client ID</label>
-                <input type="text" id="client_id" name="client_id" required>
+                <input type="text" id="client_id" name="client_id" value="{{ environ.get('CLIENT_ID', '') }}" required>
             </div>
             
             <div class="form-group">
                 <label for="client_secret">Client Secret</label>
-                <input type="password" id="client_secret" name="client_secret" required>
+                <input type="password" id="client_secret" name="client_secret" value="{{ environ.get('CLIENT_SECRET', '') }}" required>
             </div>
             
             <button type="submit">Connect</button>
